@@ -2,7 +2,7 @@
 title: "House Data EDA"
 author: "Graeme Keleher"
 date: "July 12, 2019"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}

@@ -1,0 +1,389 @@
+---
+title: "House Data EDA"
+author: "Graeme Keleher"
+date: "July 12, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load Tidyverse Suite of Packages
+```{r}
+library(tidyverse)  #Data wrangling and plotting
+library(scales)     #Formatting axis
+```
+
+# Import Training Data
+```{r message=FALSE, warning=FALSE}
+train <- read_csv("train.csv")
+```
+
+
+#Sale Price
+Insight: Not a normal distribution! Transformation could be a good idea.
+```{r message=FALSE, warning=FALSE}
+ggplot(train,aes(SalePrice))+
+  geom_histogram(bins = 50)+
+  labs(title = "Histogram of Sale Prices",
+       y = "Count",
+       x = "Sale Price")+ 
+  scale_x_continuous(labels = comma)
+```
+
+
+# Explore Missing Values
+Insight: A substantial number of features have missing data. The percentage missing varies widely. Different stratgies will most likely be required.
+```{r}
+na_per <- as.data.frame(round(100*colSums(is.na(train))/nrow(train),2))
+
+colnames(na_per) <- "Percent_NA"
+
+na_per %>%
+  rownames_to_column("Feature")%>%
+  filter(Percent_NA != 0)%>%
+  ggplot(aes(reorder(Feature,Percent_NA),Percent_NA))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Feautures by Percentage of Missing Data",
+       y = "Percentage Missing",
+       x = "")+
+  geom_text(aes(label=Percent_NA),  size=3.5, nudge_y = 4)
+  
+```
+
+#See if any missingness is predictive
+Built a simple logistical regression model for the binary 'missingness' variable of each corresponding variable with missing values. It certainly looks like many of them are predictive. That said, some NAs have meaning outlined in the data description file. For example, an NA in the 'pool quality' feature ('PoolQC') means there is no pool. 
+```{r}
+#list of feautures with at least one NA
+missing_data_columns <- colnames(train)[colSums(is.na(train)) >0]
+
+train1 <- train
+#make new column with this info
+for(col in missing_data_columns){
+  train1 <- mutate(train1, !!paste0(col,"_NA_Status") := ifelse(is.na(get(col)),1,0))
+}
+
+#Filter for Price and NA columns
+Na_df <- train1 %>%
+  select(SalePrice,contains("_NA_"))
+
+
+p_vals <- data.frame(Var=character(),
+                 P_value=numeric())
+
+for( col in colnames(Na_df)[-1]){
+  model <- glm( get(col) ~ SalePrice, data = Na_df, family = "binomial")
+  s <- summary(model)$coefficients[2,4]
+  p_vals <- rbind(p_vals,data.frame(Var=col, P_value=s))
+}
+
+
+p_vals %>%
+  ggplot(aes(reorder(Var,P_value),P_value))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Feature Missingness by P value of Predictiveness",
+       subtitle = "P value from simple logistic regression predicting Sale Price",
+       y = "P Value of Missingness Predicting Sale Price",
+       x = "")
+
+```
+
+#Baseline Model
+Built to 
+```{r}
+#transform character columns to factorogl
+col_types <- sapply(train,class)
+
+to_factor <- names(col_types[col_types == "character"])
+
+
+#For character columns replace na with "NA"
+#FOr numeric, repace na with 0
+
+train_f <- train[to_factor]
+train_n <- train%>%
+  select(-to_factor)
+
+train_f[is.na(train_f)] <- "Data_Missing" 
+train_n[is.na(train_n)] <- 0
+
+train_processed <- cbind(train_f, train_n)
+
+train_processed[to_factor] <- lapply(train_processed[to_factor], as.factor)
+
+
+Baseline_Model <- lm(SalePrice ~., data = train_processed)
+
+baseline_c <- data.frame(Feature = row.names(summary(Baseline_Model)$coefficients),
+                         summary(Baseline_Model)$coefficients)
+
+baseline_c %>%
+  arrange(desc(Estimate))%>%
+  slice(1:10)
+
+```
+
+#Roof Material
+Insight: Wooden Shingles are HIGHLY predictive of a more expensive home. Unfortunatley, these are highly rare
+```{r}
+
+train_processed %>%
+  group_by(RoofMatl)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(RoofMatl,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Roof Material",
+       y = "Number of Sales",
+       x = "")
+
+
+
+train_processed %>%
+  ggplot(aes(reorder(RoofMatl, SalePrice), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price by Roof Material",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+
+#MSSubClass Feature
+Insight: High class imbalance, looks predictive
+```{r}
+train$MSSubClass <- as.factor(train$MSSubClass)
+
+levels(train$MSSubClass) <- list("1-STORY 1946 & NEWER ALL STYLES" = "20",
+                  "1-STORY 1945 & OLDER" = "30",
+                  "1-STORY W/FINISHED ATTIC ALL AGES" = "40",
+                  "1-1/2 STORY - UNFINISHED ALL AGES" = "45",
+                  "1-1/2 STORY FINISHED ALL AGES" = "50",
+                  "2-STORY 1946 & NEWER" = "60",
+                  "2-STORY 1945 & OLDER" = "70",
+                  "2-1/2 STORY ALL AGES" = "75",
+                  "SPLIT OR MULTI-LEVEL" = "80",
+                  "SPLIT FOYER" = "85",
+                  "DUPLEX - ALL STYLES AND AGES" = "90",
+                  "1-STORY PUD (Planned Unit Development) - \n1946 & NEWER" = "120",
+                  "1-1/2 STORY PUD - ALL AGES" = "150",
+                  "2-STORY PUD - 1946 & NEWER" = "160",
+                  "PUD - MULTILEVEL - INCL SPLIT \nLEV/FOYER" = "180",
+                  "2 FAMILY CONVERSION - ALL STYLES \nAND AGES" = "190")
+
+
+
+train %>%
+  group_by(MSSubClass)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(MSSubClass,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Dwelling Class (MSSubClass)",
+       y = "Number of Sales",
+       x = "")
+
+
+
+train %>%
+  ggplot(aes(reorder(MSSubClass, SalePrice), SalePrice))+
+  geom_boxplot()+
+  coord_flip()+
+  labs(title = "Sale Price by Dwelling Class (MSSubClass)",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+#MSZoning 
+Insight: High class imbalance, looks predictive
+```{r}
+train$MSZoning <- as.factor(train$MSZoning)
+
+levels(train$MSZoning) <- list("Agriculture" = "A",
+                  "Commercial" = "C (all)",
+                  "Floating Village Residential" = "FV",
+                  "Industrial" = "I",
+                  "Residential High Density" = "RH",
+                  "Residential Low Density" = "RL",
+                  "Residential Low Density Park" = "RP",
+                  "Residential Medium Density" = "RM")
+
+
+
+train %>%
+  group_by(MSZoning)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(MSZoning,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Zoning Class (MSZoning)",
+       y = "Number of Sales",
+       x = "")
+
+
+
+train %>%
+  ggplot(aes(reorder(MSZoning, SalePrice), SalePrice))+
+  geom_boxplot()+
+  coord_flip()+
+  labs(title = "Sale Price by Zoning Class (MSZoning)",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+#LotFrontage
+Insight: Doesn't look very predictive, 
+```{r}
+train %>%
+  ggplot(aes(LotFrontage))+
+  geom_histogram()+
+  labs(title = "Histogram of Lot Frontage (Linear Feet)",
+       subtitle = "259 NAs removed",
+       y = "Count",
+       x = "Lot Frontage (Linear Feet)")
+
+train %>%
+  ggplot(aes(LotFrontage, SalePrice))+
+  geom_point()+
+  labs(title = "Sale Price Vs Lot Frontage (Linear Feet)",
+       subtitle = "259 NAs removed",
+       y = "Sale Price",
+       x = "Lot Frontage (Linear Feet)")+ 
+  scale_y_continuous(labels = comma)
+
+train %>%
+  mutate(Lot_front_na = ifelse(is.na(LotFrontage),"Missing","Not Missing"))%>%
+  ggplot(aes(Lot_front_na, SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price by Missingness of LotFrontage",
+       y = "Sale Price",
+       x = "Lot Frontage Feature Missing?")+ 
+  scale_y_continuous(labels = comma)
+```
+
+#LotArea
+Insight: Looks somewhat predictive, OUTLIERS
+```{r}
+train %>%
+  ggplot(aes(LotArea))+
+  geom_histogram(bins = 80)+
+  labs(title = "Histogram of Lot Area (Sqaure Feet)",
+       y = "Count",
+       x = "Lot Area (Square Feet)")
+
+train %>%
+  ggplot(aes(LotArea, SalePrice))+
+  geom_point()+
+  labs(title = "Sale Price Vs Lot Area (Square Feet)",
+       y = "Sale Price",
+       x = "Lot Area (Sqaure Feet)")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#Street
+Insight: High class imbalance, possibly predictive
+```{r}
+train$Street <- as.factor(train$Street)
+
+
+train %>%
+  group_by(Street)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(Street,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Type of Road Access (Street)",
+       y = "Number of Sales",
+       x = "")
+
+
+
+train %>%
+  ggplot(aes(reorder(Street, SalePrice), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price by Type of Road Access (Street)",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+
+#Neighborhood  Feature
+Insight: High class imbalance, looks predictive
+```{r}
+train$Neighborhood <- as.factor(train$Neighborhood)
+
+
+
+train %>%
+  group_by(Neighborhood )%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(Neighborhood ,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Neighborhood ",
+       y = "Number of Sales",
+       x = "")
+
+
+
+train %>%
+  ggplot(aes(reorder(Neighborhood , SalePrice), SalePrice))+
+  geom_boxplot()+
+  coord_flip()+
+  labs(title = "Sale Price by Neighborhood ",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+
+
+#OverallQual
+Insight: Looks VERY predictive
+```{r}
+train %>%
+  group_by(OverallQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(OverallQual, class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Overall Quality",
+       y = "Number of Sales",
+       x = "")
+
+train %>%
+  ggplot(aes(OverallQual, SalePrice))+
+  geom_jitter()+
+  labs(title = "Sale Price Vs OverallQual (1-10)",
+       y = "Sale Price",
+       x = "OverallQual (1-10)")
+
+```
+
+#OverallCond
+Insight: Doesn;t look very predictive
+```{r}
+train %>%
+  group_by(OverallCond)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(OverallCond, class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Overall Condition",
+       y = "Number of Sales",
+       x = "")
+
+train %>%
+  ggplot(aes(OverallCond, SalePrice))+
+  geom_jitter()+
+  labs(title = "Sale Price Vs OverallCond (1-10)",
+       y = "Sale Price",
+       x = "OverallCond (1-10)")
+
+```

@@ -32,17 +32,18 @@ y = train_processed$SalePrice
 
 print(paste("There are",dim(x)[2], "features w/ dummy variables"))
 
-
+#Find best lambda and visualize through cross validation
 glm_fit <- cv.glmnet(x,y, alpha = 1)
 
 plot(glm_fit)
 
-bestlambda = log(glm_fit$lambda.min)
+bestlambda = glm_fit$lambda.min
 
 print(paste("best log lambda value:",round(bestlambda,2)))
 
 
-glm_model <- glmnet(x,y, alpha = 1, nlambda = 100)
+#Create glm model with best lmabda from cross validation
+glm_model <- glmnet(x,y, alpha = 1, lambda = bestlambda)
 
 plot_glmnet(glm_model)+ abline(v = bestlambda, lwd = 2)
 
@@ -58,7 +59,14 @@ print(paste("R Squared value of best model",round(R2,2)))
 print(paste("Cross validated MSE",round(CVK,2)))
 
 
+#Predict ON TRAINING DATA
+y_hat <- predict(glm_model,x, s = 100)
 
+library(mltools)
+
+mse(y, y_hat)
+
+cor(y, y_hat)^2
 
 
 

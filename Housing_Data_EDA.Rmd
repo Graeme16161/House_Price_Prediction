@@ -124,6 +124,10 @@ baseline_c %>%
   arrange(desc(Estimate))%>%
   slice(1:10)
 
+baseline_c %>%
+  arrange(Pr...t..)%>%
+  slice(1:20)
+
 ```
 
 #Roof Material

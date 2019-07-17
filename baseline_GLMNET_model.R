@@ -48,11 +48,14 @@ plot_glmnet(glm_model)+ abline(v = bestlambda, lwd = 2)
 
 
 
-#get R2
+#get R2 of best model (is this correct!?!?)
+#glm_fit$cvm is the mean squared error, var(y) is the 
+#glm_fit$cvm is the 
 R2 <- 1 - min(glm_fit$cvm/var(y))
+CVK <- sqrt(min(glm_fit$cvm))
 
 print(paste("R Squared value of best model",round(R2,2)))
-
+print(paste("Cross validated MSE",round(CVK,2)))
 
 
 

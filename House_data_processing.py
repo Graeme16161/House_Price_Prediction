@@ -22,6 +22,10 @@ y = X['SalePrice']
 # drop target feature from training data
 X.drop('SalePrice',axis=1,inplace=True)
 
+end_train_index = X.shape[0]
+#load training data
+X_test = pd.read_csv('test.csv', index_col = 'Id')
+
 
 '''
 apply log transform to target data
@@ -50,6 +54,42 @@ X_categoric_feature_names = list(set(X_all_feature_names)-set(X_numeric_feature_
 
 # categoric data
 X_categoric_features = X[X_categoric_feature_names]
+
+def process_predictive_features(X):
+    X_all_feature_names = X.columns.tolist()
+    
+    # data frame of just numeric training data
+    X_numeric_features = X._get_numeric_data().drop('MSSubClass',axis=1)
+    
+    # list of only numeric training data features
+    X_numeric_feature_names = X_numeric_features.columns.tolist()
+    
+    # list of only categoric training data features
+    X_categoric_feature_names = list(set(X_all_feature_names)-set(X_numeric_feature_names))
+    
+    # categoric data
+    X_categoric_features = X[X_categoric_feature_names]
+    
+    X_categoric_features.fillna('Missing', inplace = True)
+    
+    
+    for name in X_categoric_feature_names:
+        X_categoric_features[name] = X_categoric_features[name].astype('category')
+        
+    X_numeric_features.fillna(0, inplace = True)
+    
+    for name in X_numeric_feature_names:
+        new_name = name + "_is_Zero"
+        
+        X_numeric_features[new_name] = X_numeric_features[name].apply(lambda x: "Zero" if x == 0 else "Non_Zero").astype('category')
+
+    X_processed = X_numeric_features.join(X_categoric_features,how = 'inner')
+        
+        
+    X_dummified = pd.get_dummies(X_processed)
+    
+    return(X_dummified)    
+
 
 
 '''
@@ -94,20 +134,6 @@ lassocv = LassoCV(cv=10)
 baseline_lasso_model = lassocv.fit(X_dummified,y_log)
 
 baseline_lasso_model.score(X_dummified,y_log)
-
-
-
-
-
-#reg.alphas_
-mse_path = np.mean(baseline_lasso_model.mse_path_,axis=1)
-alphas = baseline_lasso_model.alphas_
-fig = plt.figure(figsize=(5,8))
-plt.plot(alphas, mse_path,color='blue',linewidth=1)
-#plt.plot(df_y['y_estimated'].tolist(),color='black',linewidth=0.1)
-plt.legend()
-plt.show()
-
 
 
 X_test = pd.read_csv('test.csv', index_col = 'Id')

@@ -24,12 +24,28 @@ train <- read_csv("train.csv")
 #Sale Price
 Insight: Not a normal distribution! Transformation could be a good idea.
 ```{r message=FALSE, warning=FALSE}
-ggplot(train,aes(SalePrice))+
+g <- ggplot(train,aes(SalePrice))+
   geom_histogram(bins = 50)+
   labs(title = "Histogram of Sale Prices",
        y = "Count",
        x = "Sale Price")+ 
   scale_x_continuous(labels = comma)
+
+ggsave("plots/sales_distribution.jpeg",plot = g,dpi = 320, width = 8, height = 4)
+```
+
+
+#Sale Price Log
+Insight: Not a normal distribution! Transformation could be a good idea.
+```{r message=FALSE, warning=FALSE}
+g <- ggplot(train,aes(log(SalePrice)))+
+  geom_histogram(bins = 50)+
+  labs(title = "Histogram of Sale Prices (Log)",
+       y = "Count",
+       x = "Sale Price (Log)")+ 
+  scale_x_continuous(labels = comma)
+
+ggsave("plots/sales_distribution_log.jpeg",plot = g,dpi = 320, width = 8, height = 4)
 ```
 
 
@@ -40,16 +56,18 @@ na_per <- as.data.frame(round(100*colSums(is.na(train))/nrow(train),2))
 
 colnames(na_per) <- "Percent_NA"
 
-na_per %>%
+g <- na_per %>%
   rownames_to_column("Feature")%>%
   filter(Percent_NA != 0)%>%
   ggplot(aes(reorder(Feature,Percent_NA),Percent_NA))+
   geom_bar(stat = "identity")+
   coord_flip()+
-  labs(title = "Feautures by Percentage of Missing Data",
-       y = "Percentage Missing",
+  labs(title = "Feautures with Missing Values by Percentage Missing (Training)",
+       y = "Percentage of Feature Missing",
        x = "")+
   geom_text(aes(label=Percent_NA),  size=3.5, nudge_y = 4)
+
+ggsave("plots/missing_data.jpeg",plot = g,dpi = 320, width = 8, height = 4)
   
 ```
 
@@ -269,7 +287,7 @@ train %>%
   scale_y_continuous(labels = comma)
 ```
 
-#LotArea
+#GrLivArea
 Insight: Looks somewhat predictive, OUTLIERS
 ```{r}
 train %>%
@@ -279,13 +297,15 @@ train %>%
        y = "Count",
        x = "Lot Area (Square Feet)")
 
-train %>%
-  ggplot(aes(LotArea, SalePrice))+
+g <- train %>%
+  ggplot(aes(GrLivArea, SalePrice))+
   geom_point()+
-  labs(title = "Sale Price Vs Lot Area (Square Feet)",
+  labs(title = "Sale Price Vs GrLivArea",
        y = "Sale Price",
-       x = "Lot Area (Sqaure Feet)")+ 
+       x = "GrLivArea (Sqaure Feet)")+ 
   scale_y_continuous(labels = comma)
+
+ggsave("plots/outlier_viz.jpeg",plot = g,dpi = 320, width = 8, height = 4)
 
 ```
 
@@ -354,40 +374,85 @@ Insight: Looks VERY predictive
 train %>%
   group_by(OverallQual)%>%
   summarise(class_total = n())%>%
-  ggplot(aes(OverallQual, class_total))+
+  ggplot(aes(as.factor(OverallQual), class_total))+
   geom_bar(stat = "identity")+
-  coord_flip()+
   labs(title = "Number of Sales by Overall Quality",
        y = "Number of Sales",
        x = "")
 
 train %>%
-  ggplot(aes(OverallQual, SalePrice))+
-  geom_jitter()+
+  ggplot(aes(as.factor(OverallQual), SalePrice))+
+  geom_boxplot()+
   labs(title = "Sale Price Vs OverallQual (1-10)",
        y = "Sale Price",
        x = "OverallQual (1-10)")
 
 ```
 
-#OverallCond
-Insight: Doesn;t look very predictive
+#Total Baths
 ```{r}
+tbath = train %>%
+  
+
 train %>%
-  group_by(OverallCond)%>%
+  group_by(HalfBath)%>%
   summarise(class_total = n())%>%
-  ggplot(aes(OverallCond, class_total))+
+  ggplot(aes(HalfBath, class_total))+
   geom_bar(stat = "identity")+
   coord_flip()+
-  labs(title = "Number of Sales by Overall Condition",
+  labs(title = "Number of Sales by FullBath",
        y = "Number of Sales",
        x = "")
 
 train %>%
-  ggplot(aes(OverallCond, SalePrice))+
-  geom_jitter()+
-  labs(title = "Sale Price Vs OverallCond (1-10)",
+  ggplot(aes(as.factor(HalfBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs FullBath",
        y = "Sale Price",
-       x = "OverallCond (1-10)")
+       x = "")
+
+```
+
+
+#Garage
+Insight: Looks VERY predictive
+```{r}
+train %>%
+  group_by(GarageCars)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(GarageCars), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Garage Size",
+       y = "Number of Sales",
+       x = "")
+
+train %>%
+  ggplot(aes(as.factor(GarageCars), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Cars in Garage",
+       y = "Sale Price",
+       x = "Number of Cars in Garage")
+
+```
+
+
+#BsmtQual
+Insight: Looks VERY predictive
+```{r}
+train %>%
+  group_by(BsmtQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtQual, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Overall Quality",
+       y = "Number of Sales",
+       x = "")
+
+train %>%
+  ggplot(aes(BsmtQual, SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs OverallQual (1-10)",
+       y = "Sale Price",
+       x = "OverallQual (1-10)")
 
 ```

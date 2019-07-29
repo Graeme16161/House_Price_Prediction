@@ -1,0 +1,530 @@
+---
+title: "Categorical Variable Price Distributions"
+author: "Graeme Keleher"
+date: "July 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Purpose
+The point of this notebook is to plot categorial features to see if they have linear structure when converted to numerical 
+
+
+## Load Tidyverse Suite of Packages
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)  #Data wrangling and plotting
+library(scales)     #Formatting axis
+```
+
+## Import Training Data
+```{r message=FALSE, warning=FALSE}
+train <- read_csv("train.csv")
+```
+
+
+#LandContour
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(LandContour)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(LandContour, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by LandContour",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(LandContour, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs LandContour",
+       y = "Sale Price",
+       x = "LandContour")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#BsmtCond
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(BsmtCond)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtCond, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by BsmtCond",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(BsmtCond, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs BsmtCond",
+       y = "Sale Price",
+       x = "BsmtCond")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#BsmtExposure
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(BsmtExposure)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtExposure, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by BsmtExposure",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(BsmtExposure, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs BsmtExposure",
+       y = "Sale Price",
+       x = "BsmtExposure")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#BsmtFinType1
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(BsmtFinType1)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtFinType1, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by BsmtFinType1",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(BsmtFinType1, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs BsmtFinType1",
+       y = "Sale Price",
+       x = "BsmtFinType1")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#BsmtFinType2
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(BsmtFinType2)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtFinType2, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by BsmtFinType2",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(BsmtFinType2, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs BsmtFinType2",
+       y = "Sale Price",
+       x = "BsmtFinType2")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+#BsmtQual
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(BsmtQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(BsmtQual, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by BsmtQual",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(BsmtQual, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price VsBsmtQual",
+       y = "Sale Price",
+       x = "BsmtQual")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#ExterCond
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(ExterCond)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(ExterCond, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by ExterCond",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(ExterCond, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs ExterCond",
+       y = "Sale Price",
+       x = "ExterCond")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#ExterQual
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(ExterQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(ExterQual, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by ExterQual",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(ExterQual, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs ExterQual",
+       y = "Sale Price",
+       x = "ExterQual")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#FireplaceQu
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(FireplaceQu)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(FireplaceQu, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by FireplaceQu",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(FireplaceQu, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs FireplaceQu",
+       y = "Sale Price",
+       x = "FireplaceQu")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+#GarageCond
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(GarageCond)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(GarageCond, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by GarageCond",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(GarageCond, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs GarageCond",
+       y = "Sale Price",
+       x = "GarageCond")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#GarageQual
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(GarageQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(GarageQual, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by GarageQual",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(GarageQual, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs GarageQual",
+       y = "Sale Price",
+       x = "GarageQual")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#HeatingQC
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(HeatingQC)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(HeatingQC, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by HeatingQC",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(HeatingQC, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs HeatingQC",
+       y = "Sale Price",
+       x = "HeatingQC")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#KitchenQual
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(KitchenQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(KitchenQual, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by KitchenQual",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+g<- train %>%
+  ggplot(aes(reorder(KitchenQual, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs KitchenQual",
+       y = "Sale Price",
+       x = "KitchenQual")+ 
+  scale_y_continuous(labels = comma)
+
+ggsave("plots/Kitchen_quality.jpeg",plot = g,dpi = 320, width = 8, height = 4)
+
+```
+
+
+#PoolQC
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(PoolQC)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(PoolQC, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by PoolQC",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(PoolQC, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs PoolQC",
+       y = "Sale Price",
+       x = "PoolQC")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+#LandContour
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(LandContour)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(LandContour, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by LandContour",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(LandContour, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs LandContour",
+       y = "Sale Price",
+       x = "LandContour")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+#Utilities
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(Utilities)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(Utilities, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Utilities",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(Utilities, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Utilities",
+       y = "Sale Price",
+       x = "Utilities")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+#LotShape
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(LotShape)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(LotShape, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by LotShape",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(LotShape, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs LotShape",
+       y = "Sale Price",
+       x = "LotShape")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#PavedDrive
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(PavedDrive)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(PavedDrive, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by PavedDrive",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(PavedDrive, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs PavedDrive",
+       y = "Sale Price",
+       x = "PavedDrive")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+
+#Functional
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(Functional)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(Functional, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Functional",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(Functional, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Functional",
+       y = "Sale Price",
+       x = "Functional")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+#LandSlope
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(LandSlope)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(LandSlope, class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by LandSlope",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(reorder(LandSlope, SalePrice, mean), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs LandSlope",
+       y = "Sale Price",
+       x = "LandSlope")+ 
+  scale_y_continuous(labels = comma)
+
+```

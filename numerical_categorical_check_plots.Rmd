@@ -1,0 +1,413 @@
+---
+title: "Numerical or Categorical?"
+author: "Graeme Keleher"
+date: "July 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Purpose
+The point of this notebook is to plot numerical features and determine if they should actually be categorical
+
+
+## Load Tidyverse Suite of Packages
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)  #Data wrangling and plotting
+library(scales)     #Formatting axis
+```
+
+## Import Training Data
+```{r message=FALSE, warning=FALSE}
+train <- read_csv("train.csv")
+```
+
+#GarageCars
+Should be transformed to categorical
+
+```{r, echo = FALSE}
+
+train %>%
+  group_by(GarageCars)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(GarageCars), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Garage Size",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+g <- train %>%
+  ggplot(aes(as.factor(GarageCars), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs GarageCars",
+       y = "Sale Price",
+       x = "GarageCars")+ 
+  scale_y_continuous(labels = comma)
+
+
+ggsave("plots/cars_in_garage.jpeg",plot = g,dpi = 320, width = 8, height = 4)
+```
+
+## OverallCond
+POSSIBLY turn to categorical, or maybe condense 5 and above to 5?
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(OverallCond)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(OverallCond), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Overall Condition",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(OverallCond), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Overall Condition",
+       y = "Sale Price",
+       x = "Overall COndition")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+
+## MSSubClass
+Should be transformed to categorical
+
+
+```{r, echo=FALSE}
+train$MSSubClass <- as.factor(train$MSSubClass)
+
+levels(train$MSSubClass) <- list("1-STORY 1946 & NEWER ALL STYLES" = "20",
+                  "1-STORY 1945 & OLDER" = "30",
+                  "1-STORY W/FINISHED ATTIC ALL AGES" = "40",
+                  "1-1/2 STORY - UNFINISHED ALL AGES" = "45",
+                  "1-1/2 STORY FINISHED ALL AGES" = "50",
+                  "2-STORY 1946 & NEWER" = "60",
+                  "2-STORY 1945 & OLDER" = "70",
+                  "2-1/2 STORY ALL AGES" = "75",
+                  "SPLIT OR MULTI-LEVEL" = "80",
+                  "SPLIT FOYER" = "85",
+                  "DUPLEX - ALL STYLES AND AGES" = "90",
+                  "1-STORY PUD (Planned Unit Development) - \n1946 & NEWER" = "120",
+                  "1-1/2 STORY PUD - ALL AGES" = "150",
+                  "2-STORY PUD - 1946 & NEWER" = "160",
+                  "PUD - MULTILEVEL - INCL SPLIT \nLEV/FOYER" = "180",
+                  "2 FAMILY CONVERSION - ALL STYLES \nAND AGES" = "190")
+
+
+
+train %>%
+  group_by(MSSubClass)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(reorder(MSSubClass,class_total), class_total))+
+  geom_bar(stat = "identity")+
+  coord_flip()+
+  labs(title = "Number of Sales by Dwelling Class (MSSubClass)",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+
+
+train %>%
+  ggplot(aes(reorder(MSSubClass, SalePrice), SalePrice))+
+  geom_boxplot()+
+  coord_flip()+
+  labs(title = "Sale Price by Dwelling Class (MSSubClass)",
+       y = "Sale Price",
+       x = "")+ 
+  scale_y_continuous(labels = comma)
+```
+
+
+## OverallQual
+Don't transform to categorical, possible transformation needed
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(OverallQual)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(OverallQual), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Overall Quality",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(OverallQual), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs OverallQual (1-10)",
+       y = "Sale Price",
+       x = "OverallQual (1-10)")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## BsmtFullBath
+Perhaps merge 1-3?
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(BsmtFullBath)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(BsmtFullBath), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of full baths in basement",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(BsmtFullBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Full baths in basement",
+       y = "Sale Price",
+       x = "Full Baths in Basement")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## BsmtHalfBath
+Can probably just get rid of this feature...
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(BsmtHalfBath)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(BsmtHalfBath), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of half baths in basement",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(BsmtHalfBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Half baths in basement",
+       y = "Sale Price",
+       x = "Half Baths in Basement")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## FullBath
+combine 0 with 1
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(FullBath)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(FullBath), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of full baths",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(FullBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Full baths",
+       y = "Sale Price",
+       x = "Full Baths")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+## HalfBath
+combine 1 and 2?
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(HalfBath)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(HalfBath), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of half baths",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(HalfBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Half baths",
+       y = "Sale Price",
+       x = "Half Baths")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+## TotalBath
+Combine 0 and 1
+
+
+```{r, echo=FALSE}
+train %>%
+  mutate(TotalBath = FullBath + HalfBath)%>%
+  group_by(TotalBath)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(TotalBath), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of total baths",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  mutate(TotalBath = FullBath + HalfBath)%>%
+  ggplot(aes(as.factor(TotalBath), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Total baths",
+       y = "Sale Price",
+       x = "Total Baths")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+
+## BedroomAbvGr
+can we condense to 1-4 bedrooms!?
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(BedroomAbvGr)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(BedroomAbvGr), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of Bedrooms Above Ground",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(BedroomAbvGr), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Bedrooms Above Ground",
+       y = "Sale Price",
+       x = "Bedrooms Above Ground")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## KitchenAbvGr
+condense to 1 & 2!?
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(KitchenAbvGr)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(KitchenAbvGr), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of Kitchen Above Ground",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(KitchenAbvGr), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Kitchens Above Ground",
+       y = "Sale Price",
+       x = "Kitchen Above Ground")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## Fireplaces
+Don't convert to categorical
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(Fireplaces)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(Fireplaces), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of Fireplaces",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(Fireplaces), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Fireplaces",
+       y = "Sale Price",
+       x = "Fireplaces")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+
+## KitchenAbvGr
+Don't convert to categorical
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(KitchenAbvGr)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(KitchenAbvGr), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of Kitchens Above GRound",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(KitchenAbvGr), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Kitchens Above GRound",
+       y = "Sale Price",
+       x = "Kitchens Above Ground")+ 
+  scale_y_continuous(labels = comma)
+
+```
+
+## TotRmsAbvGrd
+May be worth merging everything above 11 into 11
+
+
+```{r, echo=FALSE}
+train %>%
+  group_by(TotRmsAbvGrd)%>%
+  summarise(class_total = n())%>%
+  ggplot(aes(as.factor(TotRmsAbvGrd), class_total))+
+  geom_bar(stat = "identity")+
+  labs(title = "Number of Sales by Number of Rooms Above GRound",
+       y = "Number of Sales",
+       x = "")+
+  geom_text(aes(label=class_total),  size=3.5, nudge_y = 40)
+
+train %>%
+  ggplot(aes(as.factor(TotRmsAbvGrd), SalePrice))+
+  geom_boxplot()+
+  labs(title = "Sale Price Vs Number of Rooms Above GRound",
+       y = "Sale Price",
+       x = "Rooms Above Ground")+ 
+  scale_y_continuous(labels = comma)
+
+```
